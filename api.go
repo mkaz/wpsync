@@ -3,10 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/automattic/go/jaguar"
 )
 
 // struct for reading local file in
@@ -15,8 +16,18 @@ type Page struct {
 	Date                                   time.Time
 }
 
+func getApiFetcher(endpoint string) (j jaguar.Jaguar) {
+	apiurl := "https://public-api.wordpress.com/rest/v1"
+	url := strings.Join([]string{apiurl, "sites", conf.BlogID, endpoint}, "/")
+
+	j = jaguar.New()
+	j.Header.Add("Authorization", "Bearer "+conf.Token)
+	j.Url(url)
+	return j
+}
+
 // create new post
-func createPost(filename string) {
+func uploadPost(filename string) {
 
 	page := readParseFile(filename)
 
@@ -37,66 +48,6 @@ func createPost(filename string) {
 	newurl := parseNewPostResponse(resp.Bytes)
 
 	fmt.Println("New Post:", newurl)
-}
-
-// read and parse markdown filename
-func readParseFile(filename string) (page Page) {
-
-	// setup default page struct
-	page = Page{
-		Title:    "",
-		Content:  "",
-		Category: "",
-		Date:     time.Now(),
-		Tags:     "",
-		Status:   "publish",
-	}
-
-	var data, err = ioutil.ReadFile(filename)
-	if err != nil {
-		log.Fatalln(">>Error: can't read file:", filename)
-	}
-
-	// parse front matter from --- to ---
-	var lines = strings.Split(string(data), "\n")
-	var found = 0
-	for i, line := range lines {
-		line = strings.TrimSpace(line)
-
-		if found == 1 {
-			// parse line for param
-			colonIndex := strings.Index(line, ":")
-			if colonIndex > 0 {
-				key := strings.TrimSpace(line[:colonIndex])
-				value := strings.TrimSpace(line[colonIndex+1:])
-				value = strings.Trim(value, "\"") //remove quotes
-				switch key {
-				case "title":
-					page.Title = value
-				case "date":
-					page.Date, _ = time.Parse("2006-01-02", value)
-				case "category":
-					page.Category = value
-				case "tags":
-					page.Tags = value
-				case "status":
-					page.Status = value
-				}
-			}
-		} else if found >= 2 {
-			// params over
-			lines = lines[i:]
-			break
-		}
-
-		if line == "---" {
-			found += 1
-		}
-	}
-
-	// slurp rest of content
-	page.Content = strings.Join(lines, "\n")
-	return page
 }
 
 // extract URL from json response data of new post
