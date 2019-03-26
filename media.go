@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
+	"os"
 	"strings"
 )
 
@@ -26,9 +26,16 @@ func getLocalMedia() (media []Media) {
 
 // getRemoteMedia reads media from json file
 func getRemoteMedia() (media []Media) {
+	// check if file exists, return empty
+	// likely scenario would be first run
+	if _, err := os.Stat("media.json"); os.IsNotExist(err) {
+		fmt.Println("INFO: media.json does not exist, first run?")
+		return media
+	}
+
 	file, err := ioutil.ReadFile("media.json")
 	if err != nil {
-		fmt.Println("Error reading media.json", err)
+		fmt.Println("Error reading media.json, permissions?", err)
 	} else {
 		if err := json.Unmarshal(file, &media); err != nil {
 			fmt.Println("Error parsing JSON from media.json", err)
@@ -69,7 +76,6 @@ func writeRemoteMedia(media []Media) {
 		return
 	}
 	// append new post json
-	// TODO: err check
 	existingMedia := getRemoteMedia()
 	existingMedia = append(existingMedia, media...)
 

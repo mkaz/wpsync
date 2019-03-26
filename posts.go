@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -14,7 +14,7 @@ import (
 func getLocalPosts() (posts []Post) {
 	files, err := ioutil.ReadDir("./posts")
 	if err != nil {
-		log.Fatal("Error reading directory", err)
+		log.Fatal("Error reading posts directory", err)
 	}
 	for _, file := range files {
 		if strings.Contains(file.Name(), ".md") {
@@ -28,9 +28,16 @@ func getLocalPosts() (posts []Post) {
 
 // getRemotePosts reads posts from json file
 func getRemotePosts() (posts []Post) {
+	// check if file exists, return empty
+	// likely scenario would be first run
+	if _, err := os.Stat("posts.json"); os.IsNotExist(err) {
+		fmt.Println("INFO: posts.json does not exist, first run?")
+		return posts
+	}
+
 	file, err := ioutil.ReadFile("posts.json")
 	if err != nil {
-		fmt.Println("Error reading posts.json", err)
+		fmt.Println("Error reading posts.json, permissions?", err)
 	} else {
 		if err := json.Unmarshal(file, &posts); err != nil {
 			fmt.Println("Error parsing JSON from posts.json", err)
@@ -74,7 +81,6 @@ func writeRemotePosts(posts []Post) {
 		return
 	}
 	// append new post json
-	// TODO: err check
 	existingPosts := getRemotePosts()
 	existingPosts = append(existingPosts, posts...)
 
@@ -107,7 +113,7 @@ func readParseFile(filename string) (page Page) {
 
 	var data, err = ioutil.ReadFile(filepath.Join("posts", filename))
 	if err != nil {
-		log.Fatalln(">>Error: can't read file:", filename)
+		log.Fatal(">>Error: can't read file:", filename)
 	}
 
 	// parse front matter from --- to ---

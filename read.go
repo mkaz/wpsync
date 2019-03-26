@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 )
 
 func get_latest() []Post {
@@ -24,7 +23,7 @@ func parseFetchPosts() []Post {
 	j := getApiFetcher("posts/")
 	resp, err := j.Send()
 	if err != nil {
-		log.Fatalln(">>Error: ", err)
+		log.Fatal(">>Error: ", err)
 	}
 
 	var h []Post
@@ -40,7 +39,7 @@ func parseFetchPost(post_id string) (p Post) {
 	j := getApiFetcher("posts/" + post_id)
 	resp, err := j.Send()
 	if err != nil {
-		log.Fatalln(">>Error: ", err)
+		log.Fatal(">>Error: ", err)
 	}
 
 	if err := json.Unmarshal(resp.Bytes, &p); err != nil {
