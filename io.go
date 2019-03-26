@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -18,7 +19,6 @@ func getLocalPosts() (posts []Post) {
 	for _, file := range files {
 		if strings.Contains(file.Name(), ".md") {
 			post := Post{}
-			fmt.Println("Filename: " + file.Name())
 			post.LocalFile = file.Name()
 			posts = append(posts, post)
 		}
@@ -28,9 +28,14 @@ func getLocalPosts() (posts []Post) {
 
 // getRemotePosts reads posts from json file
 func getRemotePosts() (posts []Post) {
-	// TODO: read json file
-
-	posts = append(posts, Post{LocalFile: "sample-post.md"})
+	file, err := ioutil.ReadFile("posts.json")
+	if err != nil {
+		fmt.Println("Error reading posts.json", err)
+	} else {
+		if err := json.Unmarshal(file, &posts); err != nil {
+			fmt.Println("Error parsing JSON from posts.json", err)
+		}
+	}
 	return posts
 }
 
@@ -51,11 +56,40 @@ func comparePosts(local, remote []Post) (posts []Post) {
 	return posts
 }
 
+// uploadPosts loops through posts and uploads
+// posts are returned with Id/Url set
 func uploadPosts(posts []Post) []Post {
-	for _, p := range posts {
-		uploadPost(p.LocalFile)
+	for i, p := range posts {
+		p = uploadPost(p.LocalFile)
+		posts[i].Id = p.Id
+		posts[i].URL = p.URL
 	}
 	return posts
+}
+
+// writeRemotePosts
+func writeRemotePosts(posts []Post) {
+	if len(posts) == 0 {
+		fmt.Println("No new posts to write.")
+		return
+	}
+	// append new post json
+	// TODO: err check
+	existingPosts := getRemotePosts()
+	existingPosts = append(existingPosts, posts...)
+
+	// write file
+	json, err := json.Marshal(posts)
+	if err != nil {
+		fmt.Println("JSON Encoding Error", err)
+	} else {
+		err = ioutil.WriteFile("posts.json", json, 0644)
+		if err != nil {
+			fmt.Println("Error writing posts.json", err)
+		} else {
+			fmt.Println("posts.json written")
+		}
+	}
 }
 
 // getLocalMedia reads media from local directory
@@ -67,7 +101,6 @@ func getLocalMedia() (media []Media) {
 	for _, file := range files {
 		if strings.Contains(file.Name(), ".jpg") {
 			m := Media{}
-			fmt.Println("Media file: " + file.Name())
 			m.LocalFile = file.Name()
 			media = append(media, m)
 		}
@@ -77,6 +110,14 @@ func getLocalMedia() (media []Media) {
 
 // getRemoteMedia reads media from json file
 func getRemoteMedia() (media []Media) {
+	file, err := ioutil.ReadFile("media.json")
+	if err != nil {
+		fmt.Println("Error reading media.json", err)
+	} else {
+		if err := json.Unmarshal(file, &media); err != nil {
+			fmt.Println("Error parsing JSON from media.json", err)
+		}
+	}
 	return media
 }
 
@@ -86,6 +127,7 @@ func compareMedia(local, remote []Media) (media []Media) {
 		for _, r := range remote {
 			if m.LocalFile == r.LocalFile {
 				exists = true
+				fmt.Println("Skipping ", m.LocalFile)
 			}
 		}
 		if !exists {
@@ -95,8 +137,38 @@ func compareMedia(local, remote []Media) (media []Media) {
 	return media
 }
 
-func uploadMedia(media []Media) []Media {
+func uploadMediaItems(media []Media) []Media {
+	for i, m := range media {
+		m = uploadMedia(m)
+		media[i].Id = m.Id
+		media[i].Link = m.Link
+	}
 	return media
+}
+
+// writeRemoteMedia
+func writeRemoteMedia(media []Media) {
+	if len(media) == 0 {
+		fmt.Println("No new media to write.")
+		return
+	}
+	// append new post json
+	// TODO: err check
+	existingMedia := getRemoteMedia()
+	existingMedia = append(existingMedia, media...)
+
+	// write file
+	json, err := json.Marshal(media)
+	if err != nil {
+		fmt.Println("JSON Encoding Error", err)
+	} else {
+		err = ioutil.WriteFile("media.json", json, 0644)
+		if err != nil {
+			fmt.Println("Error writing media.json", err)
+		} else {
+			fmt.Println("media.json written")
+		}
+	}
 }
 
 // readParseFile reads a markdown file and returns a page struct

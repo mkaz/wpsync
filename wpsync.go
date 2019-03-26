@@ -8,7 +8,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -31,9 +30,9 @@ type Post struct {
 }
 
 type Media struct {
-	Id        int       `json:"ID"`
+	Id        string    `json:"id"`
 	Date      time.Time `json:"date"`
-	URL       string    `json:"URL"`
+	Link      string    `json:"link"`
 	LocalFile string
 }
 
@@ -72,15 +71,13 @@ func main() {
 	remotePosts := getRemotePosts()
 	newPosts := comparePosts(localPosts, remotePosts)
 	uploadPosts(newPosts)
-	fmt.Printf("%v \n", newPosts)
-	// TODO: write json file
+	writeRemotePosts(newPosts)
 
 	// media
 	localMedia := getLocalMedia()
 	remoteMedia := getRemoteMedia()
 	newMedia := compareMedia(localMedia, remoteMedia)
-	uploadMedia(newMedia)
-	fmt.Printf("%v \n", newMedia)
-	// TODO: write json file
+	uploadMediaItems(newMedia)
+	writeRemoteMedia(newMedia)
 
 }

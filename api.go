@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -27,7 +27,7 @@ func getApiFetcher(endpoint string) (j jaguar.Jaguar) {
 }
 
 // create new post
-func uploadPost(filename string) {
+func uploadPost(filename string) (post Post) {
 
 	page := readParseFile(filename)
 
@@ -42,52 +42,41 @@ func uploadPost(filename string) {
 
 	resp, err := j.Method("POST").Send()
 	if err != nil {
-		log.Fatalln(">>Error: ", err)
+		fmt.Println(">>Error: ", err)
 	}
 
-	newurl := parseNewPostResponse(resp.Bytes)
-
-	fmt.Println("New Post:", newurl)
-}
-
-// extract URL from json response data of new post
-func parseNewPostResponse(data []byte) string {
-
-	var rs struct{ Url string }
-
-	if err := json.Unmarshal(data, &rs); err != nil {
-		log.Fatalf("Error parsing: {} \n\n {}", data, err)
+	if err := json.Unmarshal(resp.Bytes, &post); err != nil {
+		fmt.Println("Error parsing: {} \n\n {}", resp.Bytes, err)
 	}
 
-	return rs.Url
+	return post
 }
 
 // upload a single file
-func upload_media(filename string) {
+func uploadMedia(media Media) Media {
+
 	var ur struct {
-		Media []struct {
-			Link  string
-			Title string
-		}
+		Media []Media
 	}
 
 	j := getApiFetcher("media/new")
-	j.Files["media[]"] = filename
+	j.Files["media[]"] = filepath.Join("media", media.LocalFile)
 	resp, err := j.Method("POST").Send()
-
 	if err != nil {
-		log.Fatalln(">>Error: ", err)
+		fmt.Println(">>API Error: ", err)
 	}
 
 	if err := json.Unmarshal(resp.Bytes, &ur); err != nil {
-		log.Fatal("Error parsing:", err)
+		fmt.Println("Error parsing:", err)
+		fmt.Println("JSON: %v", string(resp.Bytes))
 	}
 
 	if len(ur.Media) > 0 {
-		fmt.Println(ur.Media[0].Link)
+		media.Link = ur.Media[0].Link
+		media.Id = ur.Media[0].Id
 	} else {
-		fmt.Println("Error: No link in results")
+		fmt.Println("Error: No Link in results")
 		fmt.Println(resp.StatusCode)
 	}
-
+	return media
 }
