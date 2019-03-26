@@ -21,12 +21,20 @@ Create a `media` sub-directory, anything placed in here will be copied to the me
 
 Create a `posts` sub-directory, each markdown file placed here will create a new post.
 
-Run `wpsync` to do it.
+The markdown files accept a front matter to specify settings. The front matter format is similar to Jekyll, a set of parameters delineated by lines containing `---`
+
+The parameters are: `title, category, date, tags, status`
+
+See [WordPress REST API](https://developer.wordpress.com/docs/api/1.2/post/sites/%24site/posts/new/) for parameter details and default values.
+
+Run `wpsync`
+
+The program will create a `posts.json` and `media.json` file locally with the entries that were uploaded. If these json files are deleted, the files found in posts & media directories will be uploaded again.
 
 
 ## Colophon
 
-* Created by Marcus Kazmierczak
+* Created by Marcus Kazmierczak ([mkaz.blog](https://mkaz.blog/))
 * Written in Golang.
 * Pull requests & Bug reports welcome.
 * WTFPL Licensed.

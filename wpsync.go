@@ -4,6 +4,7 @@
 // TODO: add watch
 // TODO: add confirmation flag
 // TODO: add verbose flag
+// TODO: add download flag
 
 package main
 
