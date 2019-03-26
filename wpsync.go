@@ -75,17 +75,17 @@ func main() {
 	// read local files for data
 	localPosts := getLocalPosts()
 	for _, p := range localPosts {
-		log.Debug("Found local posts: ", p.LocalFile)
+		log.Debug("Found local post: ", p.LocalFile)
 	}
 
 	remotePosts := getRemotePosts()
 	for _, p := range remotePosts {
-		log.Debug("Existing posts: ", p.LocalFile)
+		log.Debug("Existing post: ", p.LocalFile)
 	}
 
 	newPosts := comparePosts(localPosts, remotePosts)
 	for _, p := range newPosts {
-		log.Debug("New posts to upload: ", p.LocalFile)
+		log.Debug("New post to upload: ", p.LocalFile)
 	}
 
 	if !conf.Dryrun {
@@ -98,8 +98,19 @@ func main() {
 
 	// media
 	localMedia := getLocalMedia()
+	for _, m := range localMedia {
+		log.Debug("Found local media: ", m.LocalFile)
+	}
+
 	remoteMedia := getRemoteMedia()
+	for _, m := range remoteMedia {
+		log.Debug("Existing media: ", m.LocalFile)
+	}
+
 	newMedia := compareMedia(localMedia, remoteMedia)
+	for _, m := range newMedia {
+		log.Debug("New media to upload: ", m.LocalFile)
+	}
 
 	if !conf.Dryrun {
 		uploadMediaItems(newMedia)

@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -29,16 +28,16 @@ func getRemoteMedia() (media []Media) {
 	// check if file exists, return empty
 	// likely scenario would be first run
 	if _, err := os.Stat("media.json"); os.IsNotExist(err) {
-		fmt.Println("INFO: media.json does not exist, first run?")
+		log.Info("media.json does not exist, first run?")
 		return media
 	}
 
 	file, err := ioutil.ReadFile("media.json")
 	if err != nil {
-		fmt.Println("Error reading media.json, permissions?", err)
+		log.Warn("Error reading media.json, permissions?", err)
 	} else {
 		if err := json.Unmarshal(file, &media); err != nil {
-			fmt.Println("Error parsing JSON from media.json", err)
+			log.Warn("Error parsing JSON from media.json", err)
 		}
 	}
 	return media
@@ -50,7 +49,7 @@ func compareMedia(local, remote []Media) (media []Media) {
 		for _, r := range remote {
 			if m.LocalFile == r.LocalFile {
 				exists = true
-				fmt.Println("Skipping ", m.LocalFile)
+				log.Debug("Skipping ", m.LocalFile)
 			}
 		}
 		if !exists {
@@ -72,7 +71,7 @@ func uploadMediaItems(media []Media) []Media {
 // writeRemoteMedia
 func writeRemoteMedia(media []Media) {
 	if len(media) == 0 {
-		fmt.Println("No new media to write.")
+		log.Info("No new media to write.")
 		return
 	}
 	// append new post json
@@ -80,15 +79,15 @@ func writeRemoteMedia(media []Media) {
 	existingMedia = append(existingMedia, media...)
 
 	// write file
-	json, err := json.Marshal(media)
+	json, err := json.Marshal(existingMedia)
 	if err != nil {
-		fmt.Println("JSON Encoding Error", err)
+		log.Warn("Encoding Error", err)
 	} else {
 		err = ioutil.WriteFile("media.json", json, 0644)
 		if err != nil {
-			fmt.Println("Error writing media.json", err)
+			log.Warn("Error writing media.json", err)
 		} else {
-			fmt.Println("media.json written")
+			log.Warn("media.json written")
 		}
 	}
 }

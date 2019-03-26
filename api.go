@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"path/filepath"
 	"strings"
 	"time"
@@ -42,11 +41,11 @@ func uploadPost(filename string) (post Post) {
 
 	resp, err := j.Method("POST").Send()
 	if err != nil {
-		fmt.Println(">>Error: ", err)
+		log.Warn("API error uploading", filename, err)
 	}
 
 	if err := json.Unmarshal(resp.Bytes, &post); err != nil {
-		fmt.Println("Error parsing: {} \n\n {}", resp.Bytes, err)
+		log.Warn("Error parsing JSON response", string(resp.Bytes), err)
 	}
 
 	return post
@@ -63,20 +62,18 @@ func uploadMedia(media Media) Media {
 	j.Files["media[]"] = filepath.Join("media", media.LocalFile)
 	resp, err := j.Method("POST").Send()
 	if err != nil {
-		fmt.Println(">>API Error: ", err)
+		log.Warn("API error uploading", media.LocalFile, err)
 	}
 
 	if err := json.Unmarshal(resp.Bytes, &ur); err != nil {
-		fmt.Println("Error parsing:", err)
-		fmt.Println("JSON: %v", string(resp.Bytes))
+		log.Warn("Error parsing JSON response", string(resp.Bytes), err)
 	}
 
 	if len(ur.Media) > 0 {
 		media.Link = ur.Media[0].Link
 		media.Id = ur.Media[0].Id
 	} else {
-		fmt.Println("Error: No Link in results")
-		fmt.Println(resp.StatusCode)
+		log.Warn("Error: no Link in results", media.LocalFile)
 	}
 	return media
 }

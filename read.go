@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 func get_latest() []Post {
@@ -13,9 +12,9 @@ func get_latest() []Post {
 // fetch single post
 func get_single_post(post_id string) {
 	post := parseFetchPost(post_id)
-	fmt.Println("\n# " + post.Title + "\n")
-	fmt.Println(post.Content)
-	fmt.Println(post.URL + "\n")
+	log.Debug("\n# " + post.Title + "\n")
+	log.Debug(post.Content)
+	log.Debug(post.URL + "\n")
 }
 
 // fetch and parse list of posts

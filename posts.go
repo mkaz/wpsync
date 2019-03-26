@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -31,16 +30,16 @@ func getRemotePosts() (posts []Post) {
 	// check if file exists, return empty
 	// likely scenario would be first run
 	if _, err := os.Stat("posts.json"); os.IsNotExist(err) {
-		fmt.Println("INFO: posts.json does not exist, first run?")
+		log.Info("posts.json does not exist, first run?")
 		return posts
 	}
 
 	file, err := ioutil.ReadFile("posts.json")
 	if err != nil {
-		fmt.Println("Error reading posts.json, permissions?", err)
+		log.Warn("Error reading posts.json, permissions?", err)
 	} else {
 		if err := json.Unmarshal(file, &posts); err != nil {
-			fmt.Println("Error parsing JSON from posts.json", err)
+			log.Warn("Error parsing JSON from posts.json", err)
 		}
 	}
 	return posts
@@ -53,7 +52,7 @@ func comparePosts(local, remote []Post) (posts []Post) {
 		for _, r := range remote {
 			if p.LocalFile == r.LocalFile {
 				exists = true
-				fmt.Println("Skipping ", p.LocalFile)
+				log.Debug("Skipping ", p.LocalFile)
 			}
 		}
 		if !exists {
@@ -77,7 +76,7 @@ func uploadPosts(posts []Post) []Post {
 // writeRemotePosts
 func writeRemotePosts(posts []Post) {
 	if len(posts) == 0 {
-		fmt.Println("No new posts to write.")
+		log.Info("No new posts to write.")
 		return
 	}
 	// append new post json
@@ -85,15 +84,15 @@ func writeRemotePosts(posts []Post) {
 	existingPosts = append(existingPosts, posts...)
 
 	// write file
-	json, err := json.Marshal(posts)
+	json, err := json.Marshal(existingPosts)
 	if err != nil {
-		fmt.Println("JSON Encoding Error", err)
+		log.Warn("JSON Encoding Error", err)
 	} else {
 		err = ioutil.WriteFile("posts.json", json, 0644)
 		if err != nil {
-			fmt.Println("Error writing posts.json", err)
+			log.Warn("Error writing posts.json", err)
 		} else {
-			fmt.Println("posts.json written")
+			log.Debug("posts.json written")
 		}
 	}
 }
@@ -113,7 +112,7 @@ func readParseFile(filename string) (page Page) {
 
 	var data, err = ioutil.ReadFile(filepath.Join("posts", filename))
 	if err != nil {
-		log.Fatal(">>Error: can't read file:", filename)
+		log.Warn(">>Error: can't read file:", filename)
 	}
 
 	// parse front matter from --- to ---
