@@ -8,6 +8,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -79,5 +80,8 @@ func main() {
 	newMedia := compareMedia(localMedia, remoteMedia)
 	uploadMediaItems(newMedia)
 	writeRemoteMedia(newMedia)
+	for _, m := range newMedia {
+		fmt.Println(m.LocalFile, m.Link)
+	}
 
 }
