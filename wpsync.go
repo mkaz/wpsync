@@ -83,9 +83,13 @@ func main() {
 		log.Debug("Existing post: ", p.LocalFile)
 	}
 
-	newPosts := comparePosts(localPosts, remotePosts)
+	newPosts, updatedPosts := comparePosts(localPosts, remotePosts)
 	for _, p := range newPosts {
 		log.Debug("New post to upload: ", p.LocalFile)
+	}
+
+	for _, p := range updatedPosts {
+		log.Debug("Existing post to update: ", p.LocalFile)
 	}
 
 	if !conf.Dryrun {

@@ -47,21 +47,25 @@ func getRemotePosts() (posts []Post) {
 }
 
 // comparePosts returns local posts that do not exist in remote
-func comparePosts(local, remote []Post) (posts []Post) {
+func comparePosts(local, remote []Post) (newPosts, updatePosts []Post) {
 	for _, p := range local {
 		exists := false
 		for _, r := range remote {
 			if p.LocalFile == r.LocalFile {
-				// check if file exists but needs updating
 				exists = true
-				log.Debug("Skipping ", p.LocalFile)
+				// check if file exists but needs updating
+				if p.Date.After(r.Date) {
+					updatePosts = append(updatePosts, p)
+				} else {
+					log.Debug("Skipping ", p.LocalFile)
+				}
 			}
 		}
 		if !exists {
-			posts = append(posts, p)
+			newPosts = append(newPosts, p)
 		}
 	}
-	return posts
+	return newPosts, updatePosts
 }
 
 // uploadPosts loops through posts and uploads
