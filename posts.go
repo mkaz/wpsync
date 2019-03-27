@@ -19,6 +19,7 @@ func getLocalPosts() (posts []Post) {
 		if strings.Contains(file.Name(), ".md") {
 			post := Post{}
 			post.LocalFile = file.Name()
+			post.Date = file.ModTime()
 			posts = append(posts, post)
 		}
 	}
@@ -51,6 +52,7 @@ func comparePosts(local, remote []Post) (posts []Post) {
 		exists := false
 		for _, r := range remote {
 			if p.LocalFile == r.LocalFile {
+				// check if file exists but needs updating
 				exists = true
 				log.Debug("Skipping ", p.LocalFile)
 			}
