@@ -42,6 +42,7 @@ func getRemotePosts() (posts []Post) {
 		if err := json.Unmarshal(file, &posts); err != nil {
 			log.Warn("Error parsing JSON from posts.json", err)
 		}
+		log.Debug("Posts unmarshal", posts)
 	}
 	return posts
 }
@@ -53,7 +54,7 @@ func comparePosts(local, remote []Post) (newPosts, updatePosts []Post) {
 		for _, r := range remote {
 			if p.LocalFile == r.LocalFile {
 				exists = true
-				// check if file exists but needs updating
+				p.Id = r.Id // set Id from remote
 				if p.Date.After(r.Date) {
 					updatePosts = append(updatePosts, p)
 				} else {
@@ -75,6 +76,18 @@ func uploadPosts(posts []Post) []Post {
 		p = uploadPost(p.LocalFile)
 		posts[i].Id = p.Id
 		posts[i].URL = p.URL
+		posts[i].Date = p.Date
+	}
+	return posts
+}
+
+// udatePosts loops through posts and updates
+// posts are returned with new Date set
+func updatePosts(posts []Post) []Post {
+	for i, p := range posts {
+		log.Debug("Updating post", p.Id, p.LocalFile)
+		post := updatePost(p)
+		posts[i].Date = post.Date
 	}
 	return posts
 }

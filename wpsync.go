@@ -74,26 +74,18 @@ func main() {
 
 	// read local files for data
 	localPosts := getLocalPosts()
-	for _, p := range localPosts {
-		log.Debug("Found local post: ", p.LocalFile)
-	}
+	log.Debug("Found local posts: ", localPosts)
 
 	remotePosts := getRemotePosts()
-	for _, p := range remotePosts {
-		log.Debug("Existing post: ", p.LocalFile)
-	}
+	log.Debug("Existing posts: ", remotePosts)
 
 	newPosts, updatedPosts := comparePosts(localPosts, remotePosts)
-	for _, p := range newPosts {
-		log.Debug("New post to upload: ", p.LocalFile)
-	}
-
-	for _, p := range updatedPosts {
-		log.Debug("Existing post to update: ", p.LocalFile)
-	}
+	log.Debug("New posts to upload: ", newPosts)
+	log.Debug("Existing post to update: ", updatedPosts)
 
 	if !conf.Dryrun {
-		uploadPosts(newPosts)
+		newPosts = uploadPosts(newPosts)
+		updatedPosts = updatePosts(updatedPosts)
 		writeRemotePosts(newPosts)
 		for _, p := range newPosts {
 			log.Info("New Post: ", p.LocalFile, p.URL)

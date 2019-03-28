@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"path/filepath"
 	"strings"
 	"time"
@@ -49,6 +50,32 @@ func uploadPost(filename string) (post Post) {
 	}
 
 	return post
+}
+
+// create new post
+func updatePost(p Post) Post {
+
+	page := readParseFile(p.LocalFile)
+	api := fmt.Sprintf("posts/%v", p.Id)
+	j := getApiFetcher(api)
+	j.Params.Add("title", page.Title)
+	j.Params.Add("date", page.Date.Format(time.RFC3339))
+	j.Params.Add("content", page.Content)
+	j.Params.Add("status", page.Status)
+	j.Params.Add("categories", page.Category)
+	j.Params.Add("publicize", "0")
+	j.Params.Add("tags", page.Tags)
+
+	resp, err := j.Method("POST").Send()
+	if err != nil {
+		log.Warn("API error uploading", p.LocalFile, err)
+	}
+
+	if err := json.Unmarshal(resp.Bytes, &p); err != nil {
+		log.Warn("Error parsing JSON response", string(resp.Bytes), err)
+	}
+
+	return p
 }
 
 // upload a single file
