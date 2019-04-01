@@ -7,15 +7,9 @@ This can publish a post, or upload media.
 
 ## Setup
 
-Works with WordPress.com and self-hosted blogs running [Jetpack](https://jetpack.me/). If running Jetpack it requires the JSON API to be enabled, which should be activated by default.
+Works with any self hosted WordPress but requires the [JWT Authentication](https://wordpress.org/plugins/jwt-authentication-for-wp-rest-api/) plugin to be installed and activated. Follow the plugin instructions for installation and setup.
 
-TODO: Improve authentication. For now you need to configure with an authorization token and blog id for each of your blogs. To do so, you can authorize using this site run by Apokalyptik, its fine trust me, which you must if you are going to run my code: https://rest-access.test.apokalyptik.com/
-
-Once you obtain the token and blog id, create a directory for the site you want to sync and add the file `wpsync.conf` with the following two parameters:
-
-    token = ABCDEFGH123456
-    blog_id = 123456
-
+Configure wpsync to work with you site using: `wpsync --init` It will prompt you for your username and password, the password is not stored but the JWT token used to make API calls. The token expires after 7 days, so you will need to login again.
 
 Create a `media` sub-directory, anything placed in here will be copied to the media library.
 
@@ -25,11 +19,20 @@ The markdown files accept a front matter to specify settings. The front matter f
 
 The parameters are: `title, category, date, tags, status`
 
-See [WordPress REST API](https://developer.wordpress.com/docs/api/1.2/post/sites/%24site/posts/new/) for parameter details and default values.
+See [WordPress REST API](https://developer.wordpress.org/rest-api/reference/posts/#create-a-post) for parameter details and default values.
 
 Run `wpsync`
 
 The program will create a `posts.json` and `media.json` file locally with the entries that were uploaded. If these json files are deleted, the files found in posts & media directories will be uploaded again.
+
+
+###
+
+You can confirm the JWT Authentication plugin is installed and working properly, by using this curl command and checking to see if you get a proper token response, replace USER/PASS with your credentials.
+
+```
+curl -X POST -d "username=USER&password=PASS" http://your.site/wp-json/jwt-auth/v1/token
+```
 
 
 ## Colophon

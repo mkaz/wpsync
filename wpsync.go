@@ -8,17 +8,16 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
-	"os"
+	"io/ioutil"
 	"time"
-
-	"github.com/BurntSushi/toml"
 )
 
 type Config struct {
-	BlogID string `toml:"blog_id"`
-	Token  string `toml:"token"`
-	Dryrun bool
+	SiteURL string `json:"site-url"`
+	Token   string `json:"token"   `
+	Dryrun  bool
 }
 
 type Post struct {
@@ -39,34 +38,39 @@ type Media struct {
 
 var conf Config
 var log Logger
+var setup bool
 
 // read config and parse args
 func init() {
 
-	configFilename := "wpsync.conf"
-
-	// confirm file exists
-	if _, err := os.Stat(configFilename); os.IsNotExist(err) {
-		log.Fatal(">> Config file wpsync.conf does not exists", err)
-	}
-
-	// parse file
-	if _, err := toml.DecodeFile(configFilename, &conf); err != nil {
-		log.Fatal(">> Error decoding wpsync.conf config file", err)
-	}
-
-	// confirm params and config all set
-	if conf.Token == "" {
-		log.Fatal("No auth token configured in wpsync.conf")
-	}
-
-	if conf.BlogID == "" {
-		log.Fatal("No blog id configured in wpsync.conf")
-	}
-
 	flag.BoolVar(&log.Verbose, "verbose", false, "Chatty")
 	flag.BoolVar(&conf.Dryrun, "dryrun", false, "No uploads")
+	flag.BoolVar(&setup, "init", false, "Setup and Test")
 	flag.Parse()
+
+	file, err := ioutil.ReadFile("wpsync.json")
+	if err != nil {
+		log.Debug("wpsync.json file not found, running setup", err)
+		setup = true
+	} else {
+		if err := json.Unmarshal(file, &conf); err != nil {
+			log.Fatal("Error parsing wpsync.json", err)
+		}
+		log.Debug("Config loaded", conf)
+	}
+
+	if setup {
+		runSetup()
+	}
+
+	// test setup
+	if !testSetup() {
+		// setup not working
+		// check if runSetup() ran with setup
+		// if not run it now otherwise bail
+		log.Fatal("Setup not confirmed.", conf)
+	}
+
 }
 
 // route command and args

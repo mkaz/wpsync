@@ -17,9 +17,7 @@ type Page struct {
 }
 
 func getApiFetcher(endpoint string) (j jaguar.Jaguar) {
-	apiurl := "https://public-api.wordpress.com/rest/v1"
-	url := strings.Join([]string{apiurl, "sites", conf.BlogID, endpoint}, "/")
-
+	url := strings.Join([]string{conf.SiteURL, "wp-json", endpoint}, "/")
 	j = jaguar.New()
 	j.Header.Add("Authorization", "Bearer "+conf.Token)
 	j.Url(url)
