@@ -20,7 +20,7 @@ type Config struct {
 }
 
 type Post struct {
-	Id        int    `json:"ID"`
+	Id        int    `json:"id"`
 	Title     string `json:"title.raw"`
 	Date      WPTime `json:"date"`
 	URL       string `json:"URL"`
@@ -29,8 +29,8 @@ type Post struct {
 }
 
 type Media struct {
-	Id        string `json:"id"`
-	Date      WPTime `json:"date"`
+	Id        int    `json:"id"`
+	URL       string `json:"source_url"`
 	Link      string `json:"link"`
 	LocalFile string
 }

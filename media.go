@@ -64,6 +64,7 @@ func uploadMediaItems(media []Media) []Media {
 		m = uploadMedia(m)
 		media[i].Id = m.Id
 		media[i].Link = m.Link
+		media[i].URL = m.URL
 	}
 	return media
 }

@@ -79,26 +79,21 @@ func updatePost(p Post) Post {
 // upload a single file
 func uploadMedia(media Media) Media {
 
-	var ur struct {
-		Media []Media
-	}
+	var m Media
 
-	j := getApiFetcher("media/new")
-	j.Files["media[]"] = filepath.Join("media", media.LocalFile)
+	j := getApiFetcher("wp/v2/media")
+	j.Files["file"] = filepath.Join("media", media.LocalFile)
 	resp, err := j.Method("POST").Send()
 	if err != nil {
 		log.Warn("API error uploading", media.LocalFile, err)
 	}
 
-	if err := json.Unmarshal(resp.Bytes, &ur); err != nil {
+	if err := json.Unmarshal(resp.Bytes, &m); err != nil {
 		log.Warn("Error parsing JSON response", string(resp.Bytes), err)
 	}
 
-	if len(ur.Media) > 0 {
-		media.Link = ur.Media[0].Link
-		media.Id = ur.Media[0].Id
-	} else {
-		log.Warn("Error: no Link in results", media.LocalFile)
-	}
+	media.URL = m.URL
+	media.Link = m.Link
+	media.Id = m.Id
 	return media
 }
