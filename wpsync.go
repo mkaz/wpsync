@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"flag"
 	"io/ioutil"
-	"time"
 )
 
 type Config struct {
@@ -21,18 +20,18 @@ type Config struct {
 }
 
 type Post struct {
-	Id        int       `json:"ID"`
-	Title     string    `json:"title"`
-	Date      time.Time `json:"date"`
-	URL       string    `json:"URL"`
-	Content   string    `json:"content"`
+	Id        int    `json:"ID"`
+	Title     string `json:"title.raw"`
+	Date      WPTime `json:"date"`
+	URL       string `json:"URL"`
+	Content   string `json:"content.raw"`
 	LocalFile string
 }
 
 type Media struct {
-	Id        string    `json:"id"`
-	Date      time.Time `json:"date"`
-	Link      string    `json:"link"`
+	Id        string `json:"id"`
+	Date      WPTime `json:"date"`
+	Link      string `json:"link"`
 	LocalFile string
 }
 

@@ -29,7 +29,7 @@ func uploadPost(filename string) (post Post) {
 
 	page := readParseFile(filename)
 
-	j := getApiFetcher("posts/new")
+	j := getApiFetcher("wp/v2/posts")
 	j.Params.Add("title", page.Title)
 	j.Params.Add("date", page.Date.Format(time.RFC3339))
 	j.Params.Add("content", page.Content)
@@ -54,7 +54,7 @@ func uploadPost(filename string) (post Post) {
 func updatePost(p Post) Post {
 
 	page := readParseFile(p.LocalFile)
-	api := fmt.Sprintf("posts/%v", p.Id)
+	api := fmt.Sprintf("wp/v2/posts/%v", p.Id)
 	j := getApiFetcher(api)
 	j.Params.Add("title", page.Title)
 	j.Params.Add("date", page.Date.Format(time.RFC3339))

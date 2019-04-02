@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"gopkg.in/russross/blackfriday.v2"
 )
 
 // getLocalPosts reads posts from local directory
@@ -19,7 +21,7 @@ func getLocalPosts() (posts []Post) {
 		if strings.Contains(file.Name(), ".md") {
 			post := Post{}
 			post.LocalFile = file.Name()
-			post.Date = file.ModTime()
+			post.Date = WPTime{file.ModTime()}
 			posts = append(posts, post)
 		}
 	}
@@ -55,7 +57,7 @@ func comparePosts(local, remote []Post) (newPosts, updatePosts []Post) {
 			if p.LocalFile == r.LocalFile {
 				exists = true
 				p.Id = r.Id // set Id from remote
-				if p.Date.After(r.Date) {
+				if p.Date.After(r.Date.Time) {
 					updatePosts = append(updatePosts, p)
 				} else {
 					log.Debug("Skipping ", p.LocalFile)
@@ -172,6 +174,8 @@ func readParseFile(filename string) (page Page) {
 	}
 
 	// slurp rest of content
-	page.Content = strings.Join(lines, "\n")
+	content := strings.Join(lines, "\n")
+	page.Content = string(blackfriday.Run([]byte(content)))
+
 	return page
 }
