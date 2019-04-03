@@ -23,7 +23,7 @@ type Config struct {
 type Post struct {
 	Id        int    `json:"id"`
 	Title     string `json:"title.raw"`
-	Date      WPTime `json:"date"`
+	Date      WPTime `json:"date_gmt"`
 	URL       string `json:"URL"`
 	Content   string `json:"content.raw"`
 	LocalFile string
@@ -93,7 +93,7 @@ func main() {
 	if !dryrun {
 		newPosts = uploadPosts(newPosts)
 		updatedPosts = updatePosts(updatedPosts)
-		writeRemotePosts(newPosts)
+		writeRemotePosts(newPosts, updatedPosts)
 		for _, p := range newPosts {
 			log.Info("New Post: ", p.LocalFile, p.URL)
 		}

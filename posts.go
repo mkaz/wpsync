@@ -51,21 +51,23 @@ func getRemotePosts() (posts []Post) {
 
 // comparePosts returns local posts that do not exist in remote
 func comparePosts(local, remote []Post) (newPosts, updatePosts []Post) {
-	for _, p := range local {
+	for _, lp := range local {
 		exists := false
-		for _, r := range remote {
-			if p.LocalFile == r.LocalFile {
+		for _, rp := range remote {
+			if lp.LocalFile == rp.LocalFile {
 				exists = true
-				p.Id = r.Id // set Id from remote
-				if p.Date.After(r.Date.Time) {
-					updatePosts = append(updatePosts, p)
+				lp.Id = rp.Id // set Id from remote
+				if lp.Date.After(rp.Date.Time) {
+					log.Debug("Local Date : ", lp.Date.Unix())
+					log.Debug("Remote Date: ", rp.Date.Unix())
+					updatePosts = append(updatePosts, lp)
 				} else {
-					log.Debug("Skipping ", p.LocalFile)
+					log.Debug("Skipping ", lp.LocalFile)
 				}
 			}
 		}
 		if !exists {
-			newPosts = append(newPosts, p)
+			newPosts = append(newPosts, lp)
 		}
 	}
 	return newPosts, updatePosts
@@ -75,10 +77,16 @@ func comparePosts(local, remote []Post) (newPosts, updatePosts []Post) {
 // posts are returned with Id/Url set
 func uploadPosts(posts []Post) []Post {
 	for i, p := range posts {
-		p = uploadPost(p.LocalFile)
-		posts[i].Id = p.Id
-		posts[i].URL = p.URL
-		posts[i].Date = p.Date
+		rp := uploadPost(p.LocalFile)
+		posts[i].Id = rp.Id
+		posts[i].URL = rp.URL
+
+		// Only update if date from remote post is after
+		// this makes sure when updating a post the new
+		// updated date is used, not the remote post's date
+		if posts[i].Date.Before(rp.Date.Time) {
+			posts[i].Date = rp.Date
+		}
 	}
 	return posts
 }
@@ -88,21 +96,35 @@ func uploadPosts(posts []Post) []Post {
 func updatePosts(posts []Post) []Post {
 	for i, p := range posts {
 		log.Debug("Updating post", p.Id, p.LocalFile)
-		post := updatePost(p)
-		posts[i].Date = post.Date
+		rp := updatePost(p)
+		// Only update if date from remote post is after
+		// this makes sure when updating a post the new
+		// updated date is used, not the remote post's date
+		if posts[i].Date.Before(rp.Date.Time) {
+			posts[i].Date = rp.Date
+		}
 	}
 	return posts
 }
 
 // writeRemotePosts
-func writeRemotePosts(posts []Post) {
-	if len(posts) == 0 {
-		log.Info("No new posts to write.")
+func writeRemotePosts(newPosts, updatedPosts []Post) {
+	if len(newPosts) == 0 && len(updatedPosts) == 0 {
+		log.Info("No posts to write.")
 		return
 	}
 	// append new post json
 	existingPosts := getRemotePosts()
-	existingPosts = append(existingPosts, posts...)
+	// Merge existingPosts and updatedPosts
+	// need to update the date
+	for i, ep := range existingPosts {
+		for _, up := range updatedPosts {
+			if ep.LocalFile == up.LocalFile {
+				existingPosts[i].Date = up.Date
+			}
+		}
+	}
+	existingPosts = append(existingPosts, newPosts...)
 
 	// write file
 	json, err := json.Marshal(existingPosts)
