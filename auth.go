@@ -90,5 +90,16 @@ func testSetup() bool {
 		return false
 	}
 
+	j := getApiFetcher("jwt-auth/v1/token/validate")
+	resp, err := j.Method("POST").Send()
+	if err != nil {
+		log.Warn("Error in Auth validation API", err)
+	}
+
+	if resp.StatusCode == 403 {
+		log.Warn("Authentication error. Try running --init ", string(resp.Bytes))
+		return false
+	}
+
 	return true
 }
