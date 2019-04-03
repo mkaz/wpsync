@@ -44,11 +44,23 @@ func runSetup() {
 	j.Params.Add("password", pass)
 	resp, err := j.Method("POST").Send()
 	if err != nil {
-		log.Warn("API error authentication", err)
+		log.Fatal("API error authentication", err)
+	}
+
+	if resp.StatusCode == 403 {
+		log.Fatal("Error authenticating, try again.")
+	}
+
+	if resp.StatusCode == 404 {
+		log.Fatal("Auth API not found. JWT Auth plugin installed and activated?")
 	}
 
 	if err := json.Unmarshal(resp.Bytes, &conf); err != nil {
-		log.Warn("Error parsing JSON response", string(resp.Bytes), err)
+		log.Fatal("Error parsing JSON response", string(resp.Bytes), err)
+	}
+
+	if conf.Token == "" {
+		log.Fatal("No authentication token.", resp.StatusCode, string(resp.Bytes))
 	}
 
 	// write out config

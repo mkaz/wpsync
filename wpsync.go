@@ -13,10 +13,11 @@ import (
 	"io/ioutil"
 )
 
+// Config is the structure of the jwt-auth response and
+// settings, it is used to unmarshal the data
 type Config struct {
 	SiteURL string `json:"site-url"`
-	Token   string `json:"token"   `
-	Dryrun  bool
+	Token   string `json:"token"`
 }
 
 type Post struct {
@@ -38,13 +39,16 @@ type Media struct {
 var conf Config
 var log Logger
 var setup bool
+var dryrun bool
+var confirm bool
 
 // read config and parse args
 func init() {
 
-	flag.BoolVar(&log.Verbose, "verbose", false, "Chatty")
-	flag.BoolVar(&conf.Dryrun, "dryrun", false, "No uploads")
+	flag.BoolVar(&log.Verbose, "verbose", false, "Details lots of details")
+	flag.BoolVar(&dryrun, "dryrun", false, "No uploads")
 	flag.BoolVar(&setup, "init", false, "Setup and Test")
+	flag.BoolVar(&confirm, "confirm", false, "Confirm before upload")
 	flag.Parse()
 
 	file, err := ioutil.ReadFile("wpsync.json")
@@ -86,7 +90,7 @@ func main() {
 	log.Debug("New posts to upload: ", newPosts)
 	log.Debug("Existing post to update: ", updatedPosts)
 
-	if !conf.Dryrun {
+	if !dryrun {
 		newPosts = uploadPosts(newPosts)
 		updatedPosts = updatePosts(updatedPosts)
 		writeRemotePosts(newPosts)
@@ -111,7 +115,7 @@ func main() {
 		log.Debug("New media to upload: ", m.LocalFile)
 	}
 
-	if !conf.Dryrun {
+	if !dryrun {
 		uploadMediaItems(newMedia)
 		writeRemoteMedia(newMedia)
 		for _, m := range newMedia {
