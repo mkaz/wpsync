@@ -73,11 +73,11 @@ func comparePosts(local, remote []Post) (newPosts, updatePosts []Post) {
 	return newPosts, updatePosts
 }
 
-// uploadPosts loops through posts and uploads
+// createPosts loops through posts and uploads
 // posts are returned with Id/Url set
-func uploadPosts(posts []Post) []Post {
+func createPosts(posts []Post) []Post {
 	for i, p := range posts {
-		rp := uploadPost(p.LocalFile)
+		rp := createPost(p.LocalFile)
 		posts[i].Id = rp.Id
 		posts[i].URL = rp.URL
 

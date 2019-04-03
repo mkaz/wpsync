@@ -91,7 +91,7 @@ func main() {
 	log.Debug("Existing post to update: ", updatedPosts)
 
 	if !dryrun {
-		newPosts = uploadPosts(newPosts)
+		newPosts = createPosts(newPosts)
 		updatedPosts = updatePosts(updatedPosts)
 		writeRemotePosts(newPosts, updatedPosts)
 		for _, p := range newPosts {

@@ -25,7 +25,7 @@ func getApiFetcher(endpoint string) (j jaguar.Jaguar) {
 }
 
 // create new post
-func uploadPost(filename string) (post Post) {
+func createPost(filename string) (post Post) {
 
 	page := readParseFile(filename)
 
