@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -77,15 +78,12 @@ func comparePosts(local, remote []Post) (newPosts, updatePosts []Post) {
 // posts are returned with Id/Url set
 func createPosts(posts []Post) []Post {
 	for i, p := range posts {
-		rp := createPost(p.LocalFile)
-		posts[i].Id = rp.Id
-		posts[i].URL = rp.URL
-
-		// Only update if date from remote post is after
-		// this makes sure when updating a post the new
-		// updated date is used, not the remote post's date
-		if posts[i].Date.Before(rp.Date.Time) {
+		if confirmPrompt(fmt.Sprintf("New post %s, Continue (y/N)?", p.LocalFile)) {
+			rp := createPost(p.LocalFile)
+			posts[i].Id = rp.Id
+			posts[i].URL = rp.URL
 			posts[i].Date = rp.Date
+			log.Info(fmt.Sprintf("New post: %s %s", p.LocalFile, rp.URL))
 		}
 	}
 	return posts
@@ -95,13 +93,15 @@ func createPosts(posts []Post) []Post {
 // posts are returned with new Date set
 func updatePosts(posts []Post) []Post {
 	for i, p := range posts {
-		log.Debug("Updating post", p.Id, p.LocalFile)
-		rp := updatePost(p)
-		// Only update if date from remote post is after
-		// this makes sure when updating a post the new
-		// updated date is used, not the remote post's date
-		if posts[i].Date.Before(rp.Date.Time) {
-			posts[i].Date = rp.Date
+		if confirmPrompt(fmt.Sprintf("Update post %s, Continue (y/N)?", p.LocalFile)) {
+			rp := updatePost(p)
+			// Only update if date from remote post is after
+			// this makes sure when updating a post the new
+			// updated date is used, not the remote post's date
+			if posts[i].Date.Before(rp.Date.Time) {
+				posts[i].Date = rp.Date
+			}
+			log.Info(fmt.Sprintf("Updated post: %s %s", p.LocalFile, rp.URL))
 		}
 	}
 	return posts

@@ -10,6 +10,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 )
 
@@ -94,9 +95,6 @@ func main() {
 		newPosts = createPosts(newPosts)
 		updatedPosts = updatePosts(updatedPosts)
 		writeRemotePosts(newPosts, updatedPosts)
-		for _, p := range newPosts {
-			log.Info("New Post: ", p.LocalFile, p.URL)
-		}
 	}
 
 	// media
@@ -122,5 +120,24 @@ func main() {
 			log.Info(m.LocalFile, m.Link)
 		}
 	}
+}
 
+func confirmPrompt(prompt string) bool {
+
+	// confirmation not required
+	if !confirm {
+		return true
+	}
+
+	var ans string
+	fmt.Print(prompt)
+	_, err := fmt.Scanln(&ans)
+	if err != nil {
+		log.Fatal("What happened?", err)
+	}
+	if ans == "y" || ans == "Y" {
+		return true
+	} else {
+		return false
+	}
 }
