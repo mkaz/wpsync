@@ -28,12 +28,23 @@ The program creates a `posts.json` and `media.json` file locally with the entrie
 
 ## Usage
 
-Run `wpsync [--init --confirm --dryrun --verbose]`
+Run `wpsync [args]`
 
-	--init       : Sets up blog and authentication
-	--confirm    : Prompts for confirmation on each item before submitting
-	--dryrun     : Shows what will happen, but does nothing
-	--verbose    : Very chatty, used for debugging
+Arguments:
+
+	-confirm
+		Confirm prompt before upload
+	-dryrun
+		Test run, shows what will happen
+	-help
+		Display help and quit
+	-init
+		Create settings for blog and auth
+	-verbose
+		Details lots of details
+	-version
+		Display version and quit
+
 
 
 ### Posts Markdown

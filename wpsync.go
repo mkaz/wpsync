@@ -1,9 +1,6 @@
 // wpsync - command-line tool to sync wordpress
 // https://github.com/mkaz/wpsync
 //
-// TODO: add watch
-// TODO: add confirmation flag
-// TODO: add download flag
 
 package main
 
@@ -12,6 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"os"
 )
 
 // Config is the structure of the jwt-auth response and
@@ -46,11 +44,22 @@ var confirm bool
 // read config and parse args
 func init() {
 
+	var helpFlag = flag.Bool("help", false, "Display help and quit")
+	var versionFlag = flag.Bool("version", false, "Display version and quit")
 	flag.BoolVar(&log.Verbose, "verbose", false, "Details lots of details")
-	flag.BoolVar(&dryrun, "dryrun", false, "No uploads")
-	flag.BoolVar(&setup, "init", false, "Setup and Test")
-	flag.BoolVar(&confirm, "confirm", false, "Confirm before upload")
+	flag.BoolVar(&dryrun, "dryrun", false, "Test run, shows what will happen")
+	flag.BoolVar(&setup, "init", false, "Create settings for blog and auth")
+	flag.BoolVar(&confirm, "confirm", false, "Confirm prompt before upload")
 	flag.Parse()
+
+	if *helpFlag {
+		usage()
+	}
+
+	if *versionFlag {
+		fmt.Println("wpsync v0.1.0")
+		os.Exit(0)
+	}
 
 	file, err := ioutil.ReadFile("wpsync.json")
 	if err != nil {
@@ -137,4 +146,13 @@ func confirmPrompt(prompt string) bool {
 	} else {
 		return false
 	}
+}
+
+// Display Usage
+func usage() {
+	fmt.Println("usage: wpsync [args] \n")
+	fmt.Println("Arguments:\n")
+	flag.PrintDefaults()
+	fmt.Println("")
+	os.Exit(0)
 }
