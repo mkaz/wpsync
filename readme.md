@@ -9,7 +9,7 @@ This can publish a post, or upload media.
 
 If you have a go environment install using: `go get github.com/mkaz/wpsync`
 
-Check releases tab in Github for binaries (TODO)
+Check [releases tab](https://github.com/mkaz/wpsync/releases) in Github for binaries.
 
 
 ## Setup
