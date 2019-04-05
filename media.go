@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -59,14 +60,16 @@ func compareMedia(local, remote []Media) (media []Media) {
 	return media
 }
 
-func uploadMediaItems(media []Media) []Media {
-	for i, m := range media {
-		m = uploadMedia(m)
-		media[i].Id = m.Id
-		media[i].Link = m.Link
-		media[i].URL = m.URL
+func uploadMediaItems(media []Media) (uploadedMedia []Media) {
+	for _, m := range media {
+		if confirmPrompt(fmt.Sprintf("Upload %s, Continue (y/N)? ", m.LocalFile)) {
+			upm := uploadMedia(m)
+			upm.LocalFile = m.LocalFile
+			log.Info(fmt.Sprintf("Uploaded: %s %s", m.LocalFile, upm.URL))
+			uploadedMedia = append(uploadedMedia, upm)
+		}
 	}
-	return media
+	return uploadedMedia
 }
 
 // writeRemoteMedia

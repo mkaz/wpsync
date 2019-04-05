@@ -114,11 +114,8 @@ func main() {
 	}
 
 	if !dryrun {
-		uploadMediaItems(newMedia)
-		writeRemoteMedia(newMedia)
-		for _, m := range newMedia {
-			log.Info(m.LocalFile, m.Link)
-		}
+		uploadedMedia := uploadMediaItems(newMedia)
+		writeRemoteMedia(uploadedMedia)
 	}
 }
 

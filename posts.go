@@ -78,7 +78,7 @@ func comparePosts(local, remote []Post) (newPosts, updatePosts []Post) {
 // posts are returned with Id/Url set
 func createPosts(newPosts []Post) (createdPosts []Post) {
 	for _, p := range newPosts {
-		if confirmPrompt(fmt.Sprintf("New post %s, Continue (y/N)?", p.LocalFile)) {
+		if confirmPrompt(fmt.Sprintf("New post %s, Continue (y/N)? ", p.LocalFile)) {
 			rp := createPost(p.LocalFile)
 			rp.LocalFile = p.LocalFile // do I need to merge all data
 			log.Info(fmt.Sprintf("New post: %s %s", p.LocalFile, rp.URL))
@@ -92,7 +92,7 @@ func createPosts(newPosts []Post) (createdPosts []Post) {
 // posts are returned with new Date set
 func updatePosts(posts []Post) (updatedPosts []Post) {
 	for _, p := range posts {
-		if confirmPrompt(fmt.Sprintf("Update post %s, Continue (y/N)?", p.LocalFile)) {
+		if confirmPrompt(fmt.Sprintf("Update post %s, Continue (y/N)? ", p.LocalFile)) {
 			rp := updatePost(p)
 			// Only update if local date is after remote post
 			// this makes sure when updating a post the new
