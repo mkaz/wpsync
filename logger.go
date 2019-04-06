@@ -8,17 +8,20 @@ import (
 )
 
 type Logger struct {
-	Verbose bool
+	DebugLevel bool
+	Verbose    bool
 }
 
 func (l Logger) Debug(a ...interface{}) {
-	if l.Verbose {
+	if l.DebugLevel {
 		fmt.Println(chalk.Cyan, a, chalk.Reset)
 	}
 }
 
 func (l Logger) Info(a ...interface{}) {
-	fmt.Println(chalk.Green, a, chalk.Reset)
+	if l.DebugLevel || l.Verbose {
+		fmt.Println(chalk.Green, a, chalk.Reset)
+	}
 }
 
 func (l Logger) Warn(a ...interface{}) {

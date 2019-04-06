@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/imdario/mergo"
 	"gopkg.in/russross/blackfriday.v2"
 )
 
@@ -16,13 +17,13 @@ import (
 func getLocalPosts() (posts []Post) {
 	files, err := ioutil.ReadDir("./posts")
 	if err != nil {
-		log.Fatal("Error reading posts directory", err)
+		log.Fatal("Error reading posts directory: %v", err)
 	}
 	for _, file := range files {
 		if strings.Contains(file.Name(), ".md") {
 			post := Post{}
 			post.LocalFile = file.Name()
-			post.Date = WPTime{file.ModTime()}
+			post.ModDate = file.ModTime()
 			posts = append(posts, post)
 		}
 	}
@@ -47,7 +48,6 @@ func getRemotePosts() (posts []Post) {
 		if err := json.Unmarshal(file, &posts); err != nil {
 			log.Warn("Error parsing JSON from posts.json", err)
 		}
-		log.Debug("Posts unmarshal", posts)
 	}
 	return posts
 }
@@ -60,9 +60,10 @@ func comparePosts(local, remote []Post) (newPosts, updatePosts []Post) {
 			if lp.LocalFile == rp.LocalFile {
 				exists = true
 				lp.Id = rp.Id // set Id from remote
-				if lp.Date.After(rp.Date.Time) {
-					log.Debug("Local Date : ", lp.Date.Unix())
-					log.Debug("Remote Date: ", rp.Date.Unix())
+				if lp.ModDate.After(rp.SyncDate) {
+					log.Debug("Local File: ", lp.LocalFile)
+					log.Debug("   Local ModDate  : ", lp.ModDate.Unix())
+					log.Debug("   Remote SyncDate: ", rp.SyncDate.Unix())
 					updatePosts = append(updatePosts, lp)
 				} else {
 					log.Debug("Skipping ", lp.LocalFile)
@@ -84,6 +85,7 @@ func createPosts(newPosts []Post) (createdPosts []Post) {
 			rp, err := createPost(p.LocalFile)
 			if err == nil {
 				rp.LocalFile = p.LocalFile // do I need to merge all data
+				rp.SyncDate = time.Now()
 				log.Info(fmt.Sprintf("New post: %s %s", p.LocalFile, rp.URL))
 				createdPosts = append(createdPosts, rp)
 			}
@@ -92,21 +94,33 @@ func createPosts(newPosts []Post) (createdPosts []Post) {
 	return createdPosts
 }
 
-// udatePosts loops through posts and updates
+func loadPostsFromFiles(posts []Post) (loadedPosts []Post) {
+	for _, p := range posts {
+		lp := loadPostFromFile(p)
+		loadedPosts = append(loadedPosts, lp)
+	}
+	return loadedPosts
+}
+
+func loadPostFromFile(p Post) Post {
+	post := readParseFile(p.LocalFile)
+	mergo.Merge(&post, p)
+	return post
+}
+
+// updatePosts loops through posts and updates
 // posts are returned with new Date set
 func updatePosts(posts []Post) (updatedPosts []Post) {
 	for _, p := range posts {
 		if confirmPrompt(fmt.Sprintf("Update post %s, Continue (y/N)? ", p.LocalFile)) {
 			rp, err := updatePost(p)
 			if err == nil {
-				// Only update if local date is after remote post
-				// this makes sure when updating a post the new
-				// updated date is used, not the remote post's date
-				if p.Date.After(rp.Date.Time) {
-					rp.Date = p.Date
-				}
+				rp.SyncDate = time.Now()
 				log.Info(fmt.Sprintf("Updated post: %s %s", p.LocalFile, rp.URL))
+				log.Debug("Updated SyncDate to:", rp.SyncDate.Unix())
 				updatedPosts = append(updatedPosts, rp)
+			} else {
+				log.Warn("Error updating post", err)
 			}
 		}
 	}
@@ -116,7 +130,7 @@ func updatePosts(posts []Post) (updatedPosts []Post) {
 // writeRemotePosts
 func writeRemotePosts(newPosts, updatedPosts []Post) {
 	if len(newPosts) == 0 && len(updatedPosts) == 0 {
-		log.Info("No posts to write.")
+		log.Debug("No posts to write.")
 		return
 	}
 	// append new post json
@@ -126,7 +140,7 @@ func writeRemotePosts(newPosts, updatedPosts []Post) {
 	for i, ep := range existingPosts {
 		for _, up := range updatedPosts {
 			if ep.LocalFile == up.LocalFile {
-				existingPosts[i].Date = up.Date
+				existingPosts[i].SyncDate = up.SyncDate
 			}
 		}
 	}
@@ -146,15 +160,15 @@ func writeRemotePosts(newPosts, updatedPosts []Post) {
 	}
 }
 
-// readParseFile reads a markdown file and returns a page struct
-func readParseFile(filename string) (page Page) {
+// readParseFile reads a markdown file and returns a Post struct
+func readParseFile(filename string) (post Post) {
 
-	// setup default page struct
-	page = Page{
+	// setup default data
+	post = Post{
 		Title:    "",
 		Content:  "",
 		Category: "",
-		Date:     time.Now(),
+		Date:     time.Now().Format(time.RFC3339),
 		Tags:     "",
 		Status:   "publish",
 	}
@@ -179,15 +193,18 @@ func readParseFile(filename string) (page Page) {
 				value = strings.Trim(value, "\"") //remove quotes
 				switch key {
 				case "title":
-					page.Title = value
+					post.Title = value
 				case "date":
-					page.Date, _ = time.Parse("2006-01-02", value)
+					d, err := time.Parse("2006-01-02", value)
+					if err == nil {
+						post.Date = d.Format(time.RFC3339)
+					}
 				case "category":
-					page.Category = value
+					post.Category = value
 				case "tags":
-					page.Tags = value
+					post.Tags = value
 				case "status":
-					page.Status = value
+					post.Status = value
 				}
 			}
 		} else if found >= 2 {
@@ -203,7 +220,7 @@ func readParseFile(filename string) (page Page) {
 
 	// slurp rest of content
 	content := strings.Join(lines, "\n")
-	page.Content = string(blackfriday.Run([]byte(content)))
+	post.Content = string(blackfriday.Run([]byte(content)))
 
-	return page
+	return post
 }

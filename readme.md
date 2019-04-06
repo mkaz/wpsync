@@ -80,7 +80,7 @@ Arguments:
 
 The posts should be written in markdown and include "front-matter" to specify settings. The front-matter format is similar to Jekyll, a set of parameters delineated by lines containing `---`
 
-The parameters are: `title, category, date, tags, status`
+The parameters are: `title, date, status`
 
 See [WordPress REST API](https://developer.wordpress.org/rest-api/reference/posts/#create-a-post) for parameter details and default values.
 

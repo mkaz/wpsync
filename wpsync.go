@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"time"
 )
 
 // Config is the structure of the jwt-auth response and
@@ -22,10 +23,15 @@ type Config struct {
 type Post struct {
 	Id        int    `json:"id"`
 	Title     string `json:"title.raw"`
-	Date      WPTime `json:"date_gmt"`
-	URL       string `json:"URL"`
+	Date      string `json:"date"`
+	URL       string `json:"link"`
 	Content   string `json:"content.raw"`
+	Category  string `json:"-"`
+	Status    string `json:"-"`
+	Tags      string `json:"-"`
 	LocalFile string
+	ModDate   time.Time `json:"-"`
+	SyncDate  time.Time
 }
 
 type Media struct {
@@ -42,12 +48,13 @@ var dryrun bool
 var confirm bool
 
 // read config and parse args
-func init() {
+func myInit() {
 
 	var helpFlag = flag.Bool("help", false, "Display help and quit")
 	var versionFlag = flag.Bool("version", false, "Display version and quit")
 	var testFlag = flag.Bool("test", false, "Test config and authentication")
-	flag.BoolVar(&log.Verbose, "verbose", false, "Details lots of details")
+	flag.BoolVar(&log.Verbose, "verbose", false, "Display info messages")
+	flag.BoolVar(&log.DebugLevel, "debug", false, "Display debug messages")
 	flag.BoolVar(&dryrun, "dryrun", false, "Test run, shows what will happen")
 	flag.BoolVar(&setup, "init", false, "Create settings for blog and auth")
 	flag.BoolVar(&confirm, "confirm", false, "Confirm prompt before upload")
@@ -70,7 +77,6 @@ func init() {
 		if err := json.Unmarshal(file, &conf); err != nil {
 			log.Fatal("Error parsing wpsync.json", err)
 		}
-		log.Debug("Config loaded", conf)
 	}
 
 	if *testFlag {
@@ -100,20 +106,22 @@ func init() {
 // route command and args
 func main() {
 
+	// custom init, this allows testing override
+	// go test will always run init()
+	myInit()
+
 	// read local files for data
 	localPosts := getLocalPosts()
-	log.Debug("Found local posts: ", localPosts)
-
 	remotePosts := getRemotePosts()
-	log.Debug("Existing posts: ", remotePosts)
 
 	newPosts, updatedPosts := comparePosts(localPosts, remotePosts)
-	log.Debug("New posts to upload: ", newPosts)
-	log.Debug("Existing post to update: ", updatedPosts)
 
 	if !dryrun {
 		newPosts = createPosts(newPosts)
+
+		updatedPosts = loadPostsFromFiles(updatedPosts)
 		updatedPosts = updatePosts(updatedPosts)
+
 		writeRemotePosts(newPosts, updatedPosts)
 	}
 
@@ -161,8 +169,8 @@ func confirmPrompt(prompt string) bool {
 
 // Display Usage
 func usage() {
-	fmt.Println("usage: wpsync [args] \n")
-	fmt.Println("Arguments:\n")
+	fmt.Println("usage: wpsync [args]")
+	fmt.Println("Arguments:")
 	flag.PrintDefaults()
 	fmt.Println("")
 	os.Exit(0)

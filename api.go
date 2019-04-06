@@ -6,16 +6,9 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/automattic/go/jaguar"
 )
-
-// struct for reading local file in
-type Page struct {
-	Title, Content, Category, Status, Tags string
-	Date                                   time.Time
-}
 
 func getApiFetcher(endpoint string) (j jaguar.Jaguar) {
 	url := strings.Join([]string{conf.SiteURL, "wp-json", endpoint}, "/")
@@ -32,7 +25,7 @@ func createPost(filename string) (post Post, err error) {
 
 	j := getApiFetcher("wp/v2/posts")
 	j.Params.Add("title", page.Title)
-	j.Params.Add("date", page.Date.Format(time.RFC3339))
+	j.Params.Add("date", page.Date)
 	j.Params.Add("content", page.Content)
 	j.Params.Add("status", page.Status)
 	j.Params.Add("publicize", "0")
@@ -52,15 +45,14 @@ func createPost(filename string) (post Post, err error) {
 }
 
 // create new post
-func updatePost(p Post) (post Post, err error) {
+func updatePost(post Post) (Post, error) {
 
-	page := readParseFile(p.LocalFile)
-	api := fmt.Sprintf("wp/v2/posts/%v", p.Id)
+	api := fmt.Sprintf("wp/v2/posts/%v", post.Id)
 	j := getApiFetcher(api)
-	j.Params.Add("title", page.Title)
-	j.Params.Add("date", page.Date.Format(time.RFC3339))
-	j.Params.Add("content", page.Content)
-	j.Params.Add("status", page.Status)
+	j.Params.Add("title", post.Title)
+	j.Params.Add("date", post.Date)
+	j.Params.Add("content", post.Content)
+	j.Params.Add("status", post.Status)
 	j.Params.Add("publicize", "0")
 
 	resp, err := j.Method("POST").Send()
