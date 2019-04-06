@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"strings"
 
 	"github.com/automattic/go/jaguar"
@@ -16,15 +17,11 @@ func runSetup() {
 	var user, pass string
 
 	// prompt user for site
-	fmt.Print("Enter URL for site: ")
-	_, err := fmt.Scanf("%s", &conf.SiteURL)
-	if err != nil {
-		log.Fatal("What happened?", err)
-	}
+	conf.SiteURL = promptForURL("Enter URL for site: ")
 
 	// prompt for username
 	fmt.Print("Enter username: ")
-	_, err = fmt.Scanf("%s", &user)
+	_, err := fmt.Scanf("%s", &user)
 	if err != nil {
 		log.Fatal("What happened?", err)
 	}
@@ -102,4 +99,24 @@ func testSetup() bool {
 	}
 
 	return true
+}
+
+func promptForURL(prompt string) string {
+	var input string
+
+	fmt.Print(prompt)
+	_, err := fmt.Scanf("%s", &input)
+	if err != nil {
+		log.Fatal("What happened?", err)
+	}
+
+	input = strings.TrimSuffix(input, "/")
+
+	_, err = url.ParseRequestURI(input)
+	if err != nil {
+		log.Warn("Error with URL. Be sure to include http:// prefix")
+		return promptForURL(prompt)
+	}
+
+	return input
 }
