@@ -14,7 +14,41 @@ Check [releases tab](https://github.com/mkaz/wpsync/releases) in Github for bina
 
 ## Setup
 
-Works with any self hosted WordPress but requires the [JWT Authentication](https://wordpress.org/plugins/jwt-authentication-for-wp-rest-api/) plugin to be installed and activated. Follow the plugin instructions for installation and setup.
+Works with any self-hosted WordPress but requires the [JWT Authentication](https://wordpress.org/plugins/jwt-authentication-for-wp-rest-api/) plugin to be installed and activated. Follow the plugin instructions for installation and setup.
+
+### Plugin
+
+Here's what I did to install the JWT Auth plugin:
+```
+wp plugin install --activate jwt-authentication-for-wp-rest-api
+```
+
+Add the following to your `wp-config.php`
+
+```
+define('JWT_AUTH_SECRET_KEY', 'your-top-secret-key');
+```
+
+
+My `.htaccess` config to configure the plugin:
+```
+# BEGIN WordPress
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+
+RewriteCond %{HTTP:Authorization} ^(.*)
+RewriteRule ^(.*) - [E=HTTP_AUTHORIZATION:%1]
+
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress
+```
+
+### wpsync Setup
 
 Configure wpsync to work with you site using: `wpsync --init` It will prompt you for your username and password, the password is not stored but the JWT token used to make API calls. The token expires after 7 days, so you will need to login again.
 
@@ -22,9 +56,6 @@ Create a `media` sub-directory, anything placed in here will be copied to the me
 
 Create a `posts` sub-directory, each markdown file placed here will create a new post.
 
-Run `wpsync`
-
-The program creates a `posts.json` and `media.json` file locally with the entries that were uploaded. If these json files are deleted, then any files found in posts & media directories will be uploaded again.
 
 ## Usage
 
@@ -44,8 +75,6 @@ Arguments:
 		Details lots of details
 	-version
 		Display version and quit
-
-
 
 ### Posts Markdown
 
@@ -68,6 +97,11 @@ status: draft
 Content for my post...
 ```
 
+### Sync Data
+
+The program creates a `posts.json` and `media.json` files locally with the entries that were uploaded. If these json files are deleted, then any files found in posts & media directories will be uploaded again.
+
+TODO: Implement two-way sync, right now the data only goes from local to remote.
 
 ## Troubleshoot
 
