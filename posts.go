@@ -34,7 +34,9 @@ func getRemotePosts() (posts []Post) {
 	// check if file exists, return empty
 	// likely scenario would be first run
 	if _, err := os.Stat("posts.json"); os.IsNotExist(err) {
-		log.Info("posts.json does not exist, first run?")
+		if !setup { // dont alert about missing file when known init
+			log.Info("posts.json does not exist, first run?")
+		}
 		return posts
 	}
 

@@ -29,7 +29,9 @@ func getRemoteMedia() (media []Media) {
 	// check if file exists, return empty
 	// likely scenario would be first run
 	if _, err := os.Stat("media.json"); os.IsNotExist(err) {
-		log.Info("media.json does not exist, first run?")
+		if !setup { // dont alert about missing file when known init
+			log.Info("media.json does not exist, first run?")
+		}
 		return media
 	}
 
