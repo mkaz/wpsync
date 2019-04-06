@@ -35,7 +35,7 @@ func getRemotePosts() (posts []Post) {
 	// likely scenario would be first run
 	if _, err := os.Stat("posts.json"); os.IsNotExist(err) {
 		if !setup { // dont alert about missing file when known init
-			log.Info("posts.json does not exist, first run?")
+			log.Debug("posts.json does not exist")
 		}
 		return posts
 	}
@@ -81,10 +81,12 @@ func comparePosts(local, remote []Post) (newPosts, updatePosts []Post) {
 func createPosts(newPosts []Post) (createdPosts []Post) {
 	for _, p := range newPosts {
 		if confirmPrompt(fmt.Sprintf("New post %s, Continue (y/N)? ", p.LocalFile)) {
-			rp := createPost(p.LocalFile)
-			rp.LocalFile = p.LocalFile // do I need to merge all data
-			log.Info(fmt.Sprintf("New post: %s %s", p.LocalFile, rp.URL))
-			createdPosts = append(createdPosts, rp)
+			rp, err := createPost(p.LocalFile)
+			if err == nil {
+				rp.LocalFile = p.LocalFile // do I need to merge all data
+				log.Info(fmt.Sprintf("New post: %s %s", p.LocalFile, rp.URL))
+				createdPosts = append(createdPosts, rp)
+			}
 		}
 	}
 	return createdPosts
@@ -95,15 +97,17 @@ func createPosts(newPosts []Post) (createdPosts []Post) {
 func updatePosts(posts []Post) (updatedPosts []Post) {
 	for _, p := range posts {
 		if confirmPrompt(fmt.Sprintf("Update post %s, Continue (y/N)? ", p.LocalFile)) {
-			rp := updatePost(p)
-			// Only update if local date is after remote post
-			// this makes sure when updating a post the new
-			// updated date is used, not the remote post's date
-			if p.Date.After(rp.Date.Time) {
-				rp.Date = p.Date
+			rp, err := updatePost(p)
+			if err == nil {
+				// Only update if local date is after remote post
+				// this makes sure when updating a post the new
+				// updated date is used, not the remote post's date
+				if p.Date.After(rp.Date.Time) {
+					rp.Date = p.Date
+				}
+				log.Info(fmt.Sprintf("Updated post: %s %s", p.LocalFile, rp.URL))
+				updatedPosts = append(updatedPosts, rp)
 			}
-			log.Info(fmt.Sprintf("Updated post: %s %s", p.LocalFile, rp.URL))
-			updatedPosts = append(updatedPosts, rp)
 		}
 	}
 	return updatedPosts

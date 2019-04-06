@@ -30,7 +30,7 @@ func getRemoteMedia() (media []Media) {
 	// likely scenario would be first run
 	if _, err := os.Stat("media.json"); os.IsNotExist(err) {
 		if !setup { // dont alert about missing file when known init
-			log.Info("media.json does not exist, first run?")
+			log.Debug("media.json does not exist, first run?")
 		}
 		return media
 	}
@@ -65,10 +65,14 @@ func compareMedia(local, remote []Media) (media []Media) {
 func uploadMediaItems(media []Media) (uploadedMedia []Media) {
 	for _, m := range media {
 		if confirmPrompt(fmt.Sprintf("Upload %s, Continue (y/N)? ", m.LocalFile)) {
-			upm := uploadMedia(m)
-			upm.LocalFile = m.LocalFile
-			log.Info(fmt.Sprintf("Uploaded: %s %s", m.LocalFile, upm.URL))
-			uploadedMedia = append(uploadedMedia, upm)
+			upm, err := uploadMedia(m)
+			if err == nil {
+				upm.LocalFile = m.LocalFile
+				log.Info(fmt.Sprintf("Uploaded: %s %s", m.LocalFile, upm.URL))
+				uploadedMedia = append(uploadedMedia, upm)
+			} else {
+				log.Warn("Upload Error", err)
+			}
 		}
 	}
 	return uploadedMedia

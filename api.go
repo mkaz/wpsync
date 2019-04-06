@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -25,7 +26,7 @@ func getApiFetcher(endpoint string) (j jaguar.Jaguar) {
 }
 
 // create new post
-func createPost(filename string) (post Post) {
+func createPost(filename string) (post Post, err error) {
 
 	page := readParseFile(filename)
 
@@ -34,24 +35,24 @@ func createPost(filename string) (post Post) {
 	j.Params.Add("date", page.Date.Format(time.RFC3339))
 	j.Params.Add("content", page.Content)
 	j.Params.Add("status", page.Status)
-	j.Params.Add("categories", page.Category)
 	j.Params.Add("publicize", "0")
-	j.Params.Add("tags", page.Tags)
 
 	resp, err := j.Method("POST").Send()
 	if err != nil {
-		log.Warn("API error uploading", filename, err)
+		return post, err
 	}
 
-	if err := json.Unmarshal(resp.Bytes, &post); err != nil {
-		log.Warn("Error parsing JSON response", string(resp.Bytes), err)
+	if resp.StatusCode > 299 {
+		errMsg := fmt.Sprintf("API Error [%v]: %v", resp.StatusCode, string(resp.Bytes))
+		return post, errors.New(errMsg)
 	}
 
-	return post
+	err = json.Unmarshal(resp.Bytes, &post)
+	return post, err
 }
 
 // create new post
-func updatePost(p Post) Post {
+func updatePost(p Post) (post Post, err error) {
 
 	page := readParseFile(p.LocalFile)
 	api := fmt.Sprintf("wp/v2/posts/%v", p.Id)
@@ -60,40 +61,43 @@ func updatePost(p Post) Post {
 	j.Params.Add("date", page.Date.Format(time.RFC3339))
 	j.Params.Add("content", page.Content)
 	j.Params.Add("status", page.Status)
-	j.Params.Add("categories", page.Category)
 	j.Params.Add("publicize", "0")
-	j.Params.Add("tags", page.Tags)
 
 	resp, err := j.Method("POST").Send()
 	if err != nil {
-		log.Warn("API error uploading", p.LocalFile, err)
+		return post, err
 	}
 
-	if err := json.Unmarshal(resp.Bytes, &p); err != nil {
-		log.Warn("Error parsing JSON response", string(resp.Bytes), err)
+	if resp.StatusCode > 299 {
+		errMsg := fmt.Sprintf("API Error [%v]: %v", resp.StatusCode, string(resp.Bytes))
+		return post, errors.New(errMsg)
 	}
 
-	return p
+	err = json.Unmarshal(resp.Bytes, &post)
+	return post, err
 }
 
 // upload a single file
-func uploadMedia(media Media) Media {
-
-	var m Media
+func uploadMedia(media Media) (m Media, err error) {
 
 	j := getApiFetcher("wp/v2/media")
 	j.Files["file"] = filepath.Join("media", media.LocalFile)
 	resp, err := j.Method("POST").Send()
 	if err != nil {
-		log.Warn("API error uploading", media.LocalFile, err)
+		return m, err
 	}
 
-	if err := json.Unmarshal(resp.Bytes, &m); err != nil {
-		log.Warn("Error parsing JSON response", string(resp.Bytes), err)
+	if resp.StatusCode > 299 {
+		errMsg := fmt.Sprintf("API Error [%v]: %v", resp.StatusCode, string(resp.Bytes))
+		return m, errors.New(errMsg)
+	}
+	err = json.Unmarshal(resp.Bytes, &m)
+	if err != nil {
+		return m, err
 	}
 
 	media.URL = m.URL
 	media.Link = m.Link
 	media.Id = m.Id
-	return media
+	return media, nil
 }
