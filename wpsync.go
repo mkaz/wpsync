@@ -46,6 +46,7 @@ func init() {
 
 	var helpFlag = flag.Bool("help", false, "Display help and quit")
 	var versionFlag = flag.Bool("version", false, "Display version and quit")
+	var testFlag = flag.Bool("test", false, "Test config and authentication")
 	flag.BoolVar(&log.Verbose, "verbose", false, "Details lots of details")
 	flag.BoolVar(&dryrun, "dryrun", false, "Test run, shows what will happen")
 	flag.BoolVar(&setup, "init", false, "Create settings for blog and auth")
@@ -72,6 +73,16 @@ func init() {
 		log.Debug("Config loaded", conf)
 	}
 
+	if *testFlag {
+		if testSetup() {
+			fmt.Println("Test setup passed. 👍")
+			os.Exit(0)
+		} else {
+			fmt.Println("Test setup fail. 👎")
+			os.Exit(1)
+		}
+	}
+
 	if setup {
 		runSetup()
 	}
@@ -81,7 +92,7 @@ func init() {
 		// setup not working
 		// check if runSetup() ran with setup
 		// if not run it now otherwise bail
-		log.Fatal("Setup not confirmed.", conf)
+		log.Fatal("Error validating.", conf)
 	}
 
 }
