@@ -53,7 +53,7 @@ func myInit() {
 	var helpFlag = flag.Bool("help", false, "Display help and quit")
 	var versionFlag = flag.Bool("version", false, "Display version and quit")
 	var testFlag = flag.Bool("test", false, "Test config and authentication")
-	flag.BoolVar(&log.Verbose, "verbose", false, "Display info messages")
+	flag.BoolVar(&log.Quiet, "quiet", false, "Do not display info messages")
 	flag.BoolVar(&log.DebugLevel, "debug", false, "Display debug messages")
 	flag.BoolVar(&dryrun, "dryrun", false, "Test run, shows what will happen")
 	flag.BoolVar(&setup, "init", false, "Create settings for blog and auth")

@@ -9,7 +9,7 @@ import (
 
 type Logger struct {
 	DebugLevel bool
-	Verbose    bool
+	Quiet      bool
 }
 
 func (l Logger) Debug(a ...interface{}) {
@@ -19,7 +19,7 @@ func (l Logger) Debug(a ...interface{}) {
 }
 
 func (l Logger) Info(a ...interface{}) {
-	if l.DebugLevel || l.Verbose {
+	if !l.Quiet {
 		fmt.Println(chalk.Green, a, chalk.Reset)
 	}
 }

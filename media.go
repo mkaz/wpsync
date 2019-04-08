@@ -81,7 +81,7 @@ func uploadMediaItems(media []Media) (uploadedMedia []Media) {
 // writeRemoteMedia
 func writeRemoteMedia(media []Media) {
 	if len(media) == 0 {
-		log.Info("No new media to write.")
+		log.Info("No new media to upload.")
 		return
 	}
 	// append new post json

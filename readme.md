@@ -3,13 +3,13 @@
 
 A command-line tool to sync a local directory to your WordPress.
 
-This can publish a post, or upload media.
+This can publish and update posts, as well as upload media.
 
 ## Install
 
-If you have a go environment install using: `go get github.com/mkaz/wpsync`
+Go Environment: install using: `go get github.com/mkaz/wpsync`
 
-Check [releases tab](https://github.com/mkaz/wpsync/releases) in Github for binaries.
+Binaries: See [releases tab](https://github.com/mkaz/wpsync/releases) in Github
 
 
 ## Setup

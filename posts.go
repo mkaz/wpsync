@@ -130,7 +130,7 @@ func updatePosts(posts []Post) (updatedPosts []Post) {
 // writeRemotePosts
 func writeRemotePosts(newPosts, updatedPosts []Post) {
 	if len(newPosts) == 0 && len(updatedPosts) == 0 {
-		log.Debug("No posts to write.")
+		log.Info("No posts to write.")
 		return
 	}
 	// append new post json
