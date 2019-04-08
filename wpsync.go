@@ -65,7 +65,7 @@ func myInit() {
 	}
 
 	if *versionFlag {
-		fmt.Println("wpsync v0.1.0")
+		fmt.Println("wpsync v0.1.2")
 		os.Exit(0)
 	}
 
