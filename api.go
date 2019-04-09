@@ -19,15 +19,12 @@ func getApiFetcher(endpoint string) (j jaguar.Jaguar) {
 }
 
 // create new post
-func createPost(filename string) (post Post, err error) {
-
-	page := readParseFile(filename)
-
+func createPost(post Post) (Post, error) {
 	j := getApiFetcher("wp/v2/posts")
-	j.Params.Add("title", page.Title)
-	j.Params.Add("date", page.Date)
-	j.Params.Add("content", page.Content)
-	j.Params.Add("status", page.Status)
+	j.Params.Add("title", post.Title)
+	j.Params.Add("date", post.Date)
+	j.Params.Add("content", post.Content)
+	j.Params.Add("status", post.Status)
 	j.Params.Add("publicize", "0")
 
 	resp, err := j.Method("POST").Send()

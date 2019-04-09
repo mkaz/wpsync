@@ -27,7 +27,7 @@ type Post struct {
 	URL       string `json:"link"`
 	Content   string `json:"content.raw"`
 	Category  string `json:"-"`
-	Status    string `json:"-"`
+	Status    string `json:"status"`
 	Tags      string `json:"-"`
 	LocalFile string
 	ModDate   time.Time `json:"-"`
@@ -117,6 +117,7 @@ func main() {
 	newPosts, updatedPosts := comparePosts(localPosts, remotePosts)
 
 	if !dryrun {
+		newPosts = loadPostsFromFiles(newPosts)
 		newPosts = createPosts(newPosts)
 
 		updatedPosts = loadPostsFromFiles(updatedPosts)

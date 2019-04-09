@@ -82,7 +82,7 @@ func comparePosts(local, remote []Post) (newPosts, updatePosts []Post) {
 func createPosts(newPosts []Post) (createdPosts []Post) {
 	for _, p := range newPosts {
 		if confirmPrompt(fmt.Sprintf("New post %s, Continue (y/N)? ", p.LocalFile)) {
-			rp, err := createPost(p.LocalFile)
+			rp, err := createPost(p)
 			if err == nil {
 				rp.LocalFile = p.LocalFile // do I need to merge all data
 				rp.SyncDate = time.Now()
