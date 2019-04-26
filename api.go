@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/automattic/go/jaguar"
@@ -41,7 +42,7 @@ func createPost(post Post) (Post, error) {
 	return post, err
 }
 
-// create new post
+// update existing post
 func updatePost(post Post) (Post, error) {
 
 	api := fmt.Sprintf("wp/v2/posts/%v", post.Id)
@@ -64,6 +65,75 @@ func updatePost(post Post) (Post, error) {
 
 	err = json.Unmarshal(resp.Bytes, &post)
 	return post, err
+}
+
+// create new page
+func createPage(page Page) (Page, error) {
+	j := getApiFetcher("wp/v2/pages")
+	j.Params.Add("title", page.Title)
+	j.Params.Add("content", page.Content)
+	j.Params.Add("status", page.Status)
+
+	if page.Template != "" {
+		j.Params.Add("template", page.Template)
+	}
+
+	if page.ParentId != 0 {
+		j.Params.Add("parent", strconv.Itoa(page.ParentId))
+	}
+
+	if page.Order != "" {
+		j.Params.Add("menu_order", page.Order)
+	}
+
+	resp, err := j.Method("POST").Send()
+	log.Debug("Making request", string(resp.Bytes))
+	if err != nil {
+		return page, err
+	}
+
+	if resp.StatusCode > 299 {
+		errMsg := fmt.Sprintf("API Error [%v]: %v", resp.StatusCode, string(resp.Bytes))
+		return page, errors.New(errMsg)
+	}
+
+	err = json.Unmarshal(resp.Bytes, &page)
+	return page, err
+}
+
+// update existing page
+func updatePage(page Page) (Page, error) {
+
+	api := fmt.Sprintf("wp/v2/pages/%v", page.Id)
+	j := getApiFetcher(api)
+	j.Params.Add("title", page.Title)
+	j.Params.Add("content", page.Content)
+	j.Params.Add("status", page.Status)
+
+	if page.Template != "" {
+		j.Params.Add("template", page.Template)
+	}
+
+	if page.ParentId != 0 {
+		j.Params.Add("parent", strconv.Itoa(page.ParentId))
+	}
+
+	if page.Order != "" {
+		j.Params.Add("menu_order", page.Order)
+	}
+
+	resp, err := j.Method("POST").Send()
+	if err != nil {
+		return page, err
+	}
+
+	if resp.StatusCode > 299 {
+		errMsg := fmt.Sprintf("API Error [%v]: %v", resp.StatusCode, string(resp.Bytes))
+		return page, errors.New(errMsg)
+	}
+
+	err = json.Unmarshal(resp.Bytes, &page)
+	return page, err
 }
 
 // upload a single file

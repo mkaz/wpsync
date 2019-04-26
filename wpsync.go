@@ -22,13 +22,27 @@ type Config struct {
 
 type Post struct {
 	Id        int    `json:"id"`
-	Title     string `json:"title.raw"`
-	Date      string `json:"date"`
+	Title     string `json:"-"`
+	Date      string `json:"-"`
 	URL       string `json:"link"`
-	Content   string `json:"content.raw"`
+	Content   string `json:"-"`
 	Category  string `json:"-"`
 	Status    string `json:"status"`
 	Tags      string `json:"-"`
+	LocalFile string
+	ModDate   time.Time `json:"-"`
+	SyncDate  time.Time
+}
+
+type Page struct {
+	Id        int    `json:"id"`
+	Title     string `json:"-"`
+	URL       string `json:"link"`
+	Content   string `json:"-"`
+	Status    string `json:"status"`
+	ParentId  int    `json:"-"`
+	Template  string `json:"-"`
+	Order     string `json:"-"`
 	LocalFile string
 	ModDate   time.Time `json:"-"`
 	SyncDate  time.Time
@@ -65,7 +79,7 @@ func myInit() {
 	}
 
 	if *versionFlag {
-		fmt.Println("wpsync v0.1.2")
+		fmt.Println("wpsync v0.2.0")
 		os.Exit(0)
 	}
 
@@ -110,41 +124,48 @@ func main() {
 	// go test will always run init()
 	myInit()
 
-	// read local files for data
+	// posts
 	localPosts := getLocalPosts()
-	remotePosts := getRemotePosts()
+	if len(localPosts) > 0 {
+		remotePosts := getRemotePosts()
+		newPosts, updatedPosts := comparePosts(localPosts, remotePosts)
+		if !dryrun {
+			newPosts = loadPostsFromFiles(newPosts)
+			newPosts = createPosts(newPosts)
 
-	newPosts, updatedPosts := comparePosts(localPosts, remotePosts)
+			updatedPosts = loadPostsFromFiles(updatedPosts)
+			updatedPosts = updatePosts(updatedPosts)
 
-	if !dryrun {
-		newPosts = loadPostsFromFiles(newPosts)
-		newPosts = createPosts(newPosts)
+			writeRemotePosts(newPosts, updatedPosts)
+		}
+	}
 
-		updatedPosts = loadPostsFromFiles(updatedPosts)
-		updatedPosts = updatePosts(updatedPosts)
+	// pages
+	localPages := getLocalPages()
+	if len(localPages) > 0 {
+		remotePages := getRemotePages()
+		newPages, updatedPages := comparePages(localPages, remotePages)
+		if !dryrun {
+			newPages = loadPagesFromFiles(newPages)
+			newPages = createPages(newPages)
 
-		writeRemotePosts(newPosts, updatedPosts)
+			updatedPages = loadPagesFromFiles(updatedPages)
+			updatedPages = updatePages(updatedPages)
+
+			writeRemotePages(newPages, updatedPages)
+		}
 	}
 
 	// media
 	localMedia := getLocalMedia()
-	for _, m := range localMedia {
-		log.Debug("Found local media: ", m.LocalFile)
-	}
+	if len(localMedia) > 0 {
+		remoteMedia := getRemoteMedia()
+		newMedia := compareMedia(localMedia, remoteMedia)
 
-	remoteMedia := getRemoteMedia()
-	for _, m := range remoteMedia {
-		log.Debug("Existing media: ", m.LocalFile)
-	}
-
-	newMedia := compareMedia(localMedia, remoteMedia)
-	for _, m := range newMedia {
-		log.Debug("New media to upload: ", m.LocalFile)
-	}
-
-	if !dryrun {
-		uploadedMedia := uploadMediaItems(newMedia)
-		writeRemoteMedia(uploadedMedia)
+		if !dryrun {
+			uploadedMedia := uploadMediaItems(newMedia)
+			writeRemoteMedia(uploadedMedia)
+		}
 	}
 }
 

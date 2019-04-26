@@ -17,7 +17,7 @@ import (
 func getLocalPosts() (posts []Post) {
 	files, err := ioutil.ReadDir("./posts")
 	if err != nil {
-		log.Fatal("Error reading posts directory: %v", err)
+		log.Info("Error reading posts directory: %v", err)
 	}
 	for _, file := range files {
 		if strings.Contains(file.Name(), ".md") {

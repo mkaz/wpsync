@@ -63,18 +63,22 @@ Run `wpsync [args]`
 
 Arguments:
 
-	-confirm
-		Confirm prompt before upload
-	-dryrun
-		Test run, shows what will happen
-	-help
-		Display help and quit
-	-init
-		Create settings for blog and auth
-	-verbose
-		Details lots of details
-	-version
-		Display version and quit
+  -confirm
+    	Confirm prompt before upload
+  -debug
+    	Display debug messages
+  -dryrun
+    	Test run, shows what will happen
+  -help
+    	Display help and quit
+  -init
+    	Create settings for blog and auth
+  -quiet
+    	Do not display info messages
+  -test
+    	Test config and authentication
+  -version
+    	Display version and quit
 
 ### Posts Markdown
 
@@ -96,6 +100,14 @@ status: draft
 
 Content for my post...
 ```
+
+### Pages Markdown
+
+You can create a directory called `pages` and wpsync will upload markdown files there to new pages. Pages are slightly different than posts, there is no date. Pages support the following additional fields: `parent, template, order`
+
+`parent`   - Parent id if you want to create a child page
+`template` - Pick specific template, matches file name of template
+`order`    - Equilvalent to menu_order which allows sorting children
 
 ### Sync Data
 

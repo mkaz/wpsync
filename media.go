@@ -12,7 +12,7 @@ import (
 func getLocalMedia() (media []Media) {
 	files, err := ioutil.ReadDir("./media")
 	if err != nil {
-		log.Fatal("Error reading directory", err)
+		log.Info("Error reading directory", err)
 	}
 	for _, file := range files {
 		if strings.Contains(file.Name(), ".jpg") {
